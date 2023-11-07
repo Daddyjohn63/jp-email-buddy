@@ -71,7 +71,7 @@ RESPONSE
 
 ```
 
-**_ BASIC FUNCTION TO CONNECT TO OPENAI_**
+**BASIC FUNCTION TO CONNECT TO OPENAI**
 
 ```js
 export default async function handler(req) {
@@ -100,5 +100,5 @@ export default async function handler(req) {
 }
 ```
 
-**_SUBMIT HANDLER_**
+**SUBMIT HANDLER**
 IN CHATID PAGE WE NEED TO CREATE OUR SUBMIT HANDLER AND HOOK IT UP TO OUR SENDMESSAGE ENDPOINT

@@ -1,6 +1,7 @@
 import { ChatSidebar } from "components/chatSidebar";
 import Head from "next/head";
 import { useEffect, useState } from "react";
+import { streamReader } from "openai-edge-stream";
 
 export default function ChatPage() {
   const [messageText, setMessageText] = useState("");
@@ -14,12 +15,16 @@ export default function ChatPage() {
       headers: {
         "content-type": "application/json",
       },
-      body: JSON.stringify({ chatId, message: messageText }),
+      body: JSON.stringify({ message: messageText }),
     });
     const data = response.body;
     if (!data) {
       return;
     }
+    const reader = data.getReader();
+    await streamReader(reader, (message) => {
+      console.log("MESSAGE: ", message);
+    });
   };
 
   return (
