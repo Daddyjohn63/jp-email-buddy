@@ -171,3 +171,11 @@ export default function ChatPage() {
   );
 }
 ```
+
+Lord of the Rings
+Fantasy, adventure
+J.R Tolkein
+Leather with gold leaf edges
+
+**CREATE A MESSAGE COMPONENT TO USE FOR USER AND ASSISTANT**
+we need to set a state value which takes the user message and creates an array that takes a new object we create. \_id, role and message
