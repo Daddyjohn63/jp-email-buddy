@@ -71,34 +71,103 @@ RESPONSE
 
 ```
 
-**BASIC FUNCTION TO CONNECT TO OPENAI**
+**BASIC FUNCTION TO CONNECT TO OPENAI AND STREAM TO CONSOLE AND PAGE**
 
 ```js
-export default async function handler(req) {
+//sendmessage endpoint
+import { OpenAIEdgeStream } from "openai-edge-stream";
 
+export const config = {
+  runtime: "edge",
+};
+
+export default async function handler(req) {
   try {
-    const {}= await req.json();
+    const { message } = await req.json();
     const stream = await OpenAIEdgeStream(
-      "https://api.openai.com/v1/chat/completions"{
-        headers:{
-          'content-type': 'application/json',
+      "https://api.openai.com/v1/chat/completions",
+      {
+        headers: {
+          "content-type": "application/json",
           Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         },
-        method:"POST",
+        method: "POST",
         body: JSON.stringify({
-          model:"gpt-3.5-turbo",
-          messages: [{content: message, role:"user"}],
-          stream: true
-        })
+          model: "gpt-3.5-turbo",
+          messages: [{ content: message, role: "user" }],
+          stream: true,
+        }),
       }
     );
     return new Response(stream);
-  } catch (error) {
+  } catch (e) {
     console.log("AN ERROR OCCURRED IN SEND MESSAGE:", e);
   }
-
 }
 ```
 
 **SUBMIT HANDLER**
 IN CHATID PAGE WE NEED TO CREATE OUR SUBMIT HANDLER AND HOOK IT UP TO OUR SENDMESSAGE ENDPOINT
+
+```js
+import { ChatSidebar } from "components/chatSidebar";
+import Head from "next/head";
+import { useState } from "react";
+import { streamReader } from "openai-edge-stream";
+
+export default function ChatPage() {
+  const [messageText, setMessageText] = useState("");
+  const [incomingMessage, setIncomingMessage] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("MESSAGETEXT:", messageText);
+    //hit send message endpoint
+    const response = await fetch(`/api/chat/sendMessage`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ message: messageText }),
+    });
+    const data = response.body;
+    if (!data) {
+      return;
+    }
+    const reader = data.getReader();
+    await streamReader(reader, (message) => {
+      console.log("MESSAGE: ", message);
+      setIncomingMessage((s) => `${s}${message.content}`);
+    });
+  };
+
+  return (
+    <div>
+      <Head>
+        <title>New Email</title>
+      </Head>
+      <div className="grid h-screen grid-cols-[260px_1fr]">
+        <ChatSidebar />
+        <div className="flex flex-col overflow-hidden bg-gray-700">
+          <div className="flex-1 text-white">{incomingMessage}</div>
+          <footer className="bg-gray-800 p-10">
+            <form onSubmit={handleSubmit}>
+              <fieldset className="flex gap-2">
+                <textarea
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  placeholder="Send a message..."
+                  className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
+                />
+                <button type="submit" className="btn">
+                  Send
+                </button>
+              </fieldset>
+            </form>
+          </footer>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
