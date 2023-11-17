@@ -8,15 +8,20 @@ import { Message } from "components/Message";
 export default function ChatPage() {
   // const [messageText, setMessageText] = useState("");
   const [incomingMessage, setIncomingMessage] = useState("");
+  const [campaignName, setCampaignName] = useState("");
   const [bookTitle, setBookTitle] = useState("");
   const [keyWords, setKeyWords] = useState("");
   const [author, setAuthor] = useState("");
   const [bookBinding, setBookBinding] = useState("");
   const [addInformation, setAddInformation] = useState("");
+  const [bookIllustrator, setBookIllustrator] = useState("");
+  const [introductionBy, setIntroductionBy] = useState("");
+  const [voiceTone, setVoiceTone] = useState("");
+  const [numberofWords, setNumberofWords] = useState(0);
   const [newChatMessages, setNewChatMessages] = useState([]);
   const [generatingResponse, setGeneratingResponse] = useState(false);
 
-  const messageText = `we are a company called The Folio Society that re-publishes and sells existing books and we craft them with new bindling and illustration. It is a well known quality product.Write me a marketing email about a book called ${bookTitle}, by the author ${author}, the book binding is ${bookBinding} use the comma separated keywords of ${keyWords},take into account ${addInformation}. Only write 80 words`;
+  const messageText = `we are a company that re-publishes and sells existing books and we craft them with a new book binding and illustrations. It is a well known quality product.Write me a marketing email about a book called ${bookTitle}, by the author ${author}, it is introduced by ${introductionBy}. The book binding is ${bookBinding} and the illustrations by ${bookIllustrator}.Use the comma separated keywords of ${keyWords},take into account ${addInformation}. Only write ${numberofWords} words and use the following tone of voice ${voiceTone} and add the subject title in h2 markup`;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,29 +37,49 @@ export default function ChatPage() {
       ];
       return newChatMessages;
     });
+    setCampaignName("");
     setBookTitle("");
     setKeyWords("");
     setAuthor("");
     setBookBinding("");
     setAddInformation("");
+    setBookIllustrator("");
+    setIntroductionBy("");
+    setVoiceTone("");
+    setNumberofWords(0);
+    const response = await fetch(`/api/chat/createNewChat`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        message: messageText,
+      }),
+    });
+    const json = await response.json();
+    console.log("NEW CHAT:", json);
     // console.log("MESSAGETEXT:", messageText);
     //hit send message endpoint
-    const response = await fetch(`/api/chat/sendMessage`, {
+
+    /*const response = await fetch(`/api/chat/sendMessage`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
       },
       body: JSON.stringify({ message: messageText }),
     });
+    //get the reader so we can read the response coming back from the sendMessage endpoint.
     const data = response.body;
     if (!data) {
       return;
     }
     const reader = data.getReader();
     await streamReader(reader, (message) => {
-      // console.log("MESSAGE: ", message);
+      console.log("MESSAGE: ", message);
       setIncomingMessage((s) => `${s}${message.content}`);
     });
+    */
+
     setGeneratingResponse(false);
   };
 
@@ -81,7 +106,16 @@ export default function ChatPage() {
           <footer className="bg-gray-800 p-10">
             <form onSubmit={handleSubmit}>
               <fieldset className="">
-                <div className="flex gap-2" disabled={generatingResponse}>
+                <div
+                  className="grid grid-cols-4 gap-4"
+                  disabled={generatingResponse}
+                >
+                  <textarea
+                    value={campaignName}
+                    onChange={(e) => setCampaignName(e.target.value)}
+                    placeholder={generatingResponse ? "" : "Campaign name..."}
+                    className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
+                  />
                   <textarea
                     value={bookTitle}
                     onChange={(e) => setBookTitle(e.target.value)}
@@ -89,19 +123,24 @@ export default function ChatPage() {
                     className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
                   />
                   <textarea
+                    value={author}
+                    onChange={(e) => setAuthor(e.target.value)}
+                    placeholder={generatingResponse ? "" : "Author..."}
+                    className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
+                  />
+                  <textarea
+                    value={introductionBy}
+                    onChange={(e) => setIntroductionBy(e.target.value)}
+                    placeholder={generatingResponse ? "" : "Introduced by..."}
+                    className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
+                  />
+
+                  <textarea
                     value={keyWords}
                     onChange={(e) => setKeyWords(e.target.value)}
                     placeholder={
                       generatingResponse ? "" : "comma seperated key words..."
                     }
-                    className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
-                  />
-                </div>
-                <div className="flex gap-2 py-2">
-                  <textarea
-                    value={author}
-                    onChange={(e) => setAuthor(e.target.value)}
-                    placeholder={generatingResponse ? "" : "The author..."}
                     className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
                   />
                   <textarea
@@ -112,8 +151,6 @@ export default function ChatPage() {
                     }
                     className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
                   />
-                </div>
-                <div>
                   <textarea
                     value={addInformation}
                     onChange={(e) => setAddInformation(e.target.value)}
@@ -124,7 +161,25 @@ export default function ChatPage() {
                     }
                     className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
                   />
+                  <textarea
+                    value={voiceTone}
+                    onChange={(e) => setVoiceTone(e.target.value)}
+                    placeholder={
+                      generatingResponse ? "" : "provide tone of voice..."
+                    }
+                    className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
+                  />
+
+                  <input
+                    type="number"
+                    label="number of words..."
+                    value={numberofWords}
+                    onChange={(e) => setNumberofWords(e.target.value)}
+                    placeholder={generatingResponse ? "" : "number of words..."}
+                    className=" w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
+                  />
                 </div>
+
                 <div className="flex justify-center pt-2">
                   <button
                     type="submit"
@@ -132,7 +187,7 @@ export default function ChatPage() {
                       generatingResponse ? "cursor-not-allowed opacity-50" : ""
                     }`}
                   >
-                    Send
+                    Submit
                   </button>
                 </div>
               </fieldset>

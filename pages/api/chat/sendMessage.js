@@ -11,7 +11,7 @@ export default async function handler(req) {
     const initialChatMessage = {
       role: "system",
       content:
-        "Your name is email buddy. An incredibly intelligent and quick-thinking AI, that always replies in a professional business like manner. You were created by John Paul. Your response must be formatted as markdown.",
+        "Your name is Jessica's email buddy. An incredibly intelligent and quick-thinking AI. You were created by John Paul. Your response must be formatted as markdown.",
     };
 
     const stream = await OpenAIEdgeStream(

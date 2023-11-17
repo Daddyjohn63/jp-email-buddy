@@ -172,10 +172,52 @@ export default function ChatPage() {
 }
 ```
 
+Will need dynamic inputs for,
+
+- campaign name (create campaing names separately and then when creating an email, they select the campaign.)
+- Book title
+- Book author(s)
+- Book illustrator
+- Launch date(?)
+- Book binding details
+- Introduction by
+- number of copies
+- number of words I want openai to respond with (USER SHOULD SELECT)
+- DYNAMIC TONE OF VOICE
+- CAMPAIGN NAME
+
+- WILL BE EMAILS THAT COVER A NUMBER OF BOOKS / THERE WILL BE A THEME.
+- NEED TO HAVE MAIN MESSAGES YOU WANT TO GET ACROSS.
+
+Do we need a summary of what the book is about? and in how many words?
+
 Lord of the Rings
-Fantasy, adventure
 J.R Tolkein
+President Obahma
+Fantasy, adventure
 Leather with gold leaf edges
+we are celebrating 100 years since the original book was published
+witty
+80
 
 **CREATE A MESSAGE COMPONENT TO USE FOR USER AND ASSISTANT**
 we need to set a state value which takes the user message and creates an array that takes a new object we create. \_id, role and message
+
+const [incomingMessage, setIncomingMessage] = useState("");
+const [bookTitle, setBookTitle] = useState("");
+const [keyWords, setKeyWords] = useState("");
+const [author, setAuthor] = useState("");
+const [bookBinding, setBookBinding] = useState("");
+const [addInformation, setAddInformation] = useState("");
+const [bookIllustrator, setBookIllustrator] = useState("");
+const [introductionBy, setIntroductionBy] = useState("");
+const [voiceTone, setVoiceTone] = useState("");
+const [numberofWords, setNumberofWords] = useState(100);
+const [newChatMessages, setNewChatMessages] = useState([]);
+const [generatingResponse, setGeneratingResponse] = useState(false);
+
+john
+
+EmailBuddy
+
+chats
