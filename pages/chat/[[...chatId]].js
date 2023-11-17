@@ -17,7 +17,7 @@ export default function ChatPage() {
   const [bookIllustrator, setBookIllustrator] = useState("");
   const [introductionBy, setIntroductionBy] = useState("");
   const [voiceTone, setVoiceTone] = useState("");
-  const [numberofWords, setNumberofWords] = useState(0);
+  const [numberofWords, setNumberofWords] = useState(80);
   const [newChatMessages, setNewChatMessages] = useState([]);
   const [generatingResponse, setGeneratingResponse] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -117,9 +117,12 @@ export default function ChatPage() {
                 >
                   <textarea
                     value={campaignName}
+                    required
                     onChange={(e) => setCampaignName(e.target.value)}
                     disabled={isSubmitted}
-                    placeholder={generatingResponse ? "" : "Campaign name..."}
+                    placeholder={
+                      generatingResponse ? "" : "Campaign name..(required)."
+                    }
                     className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
                   />
                   <textarea
@@ -178,7 +181,7 @@ export default function ChatPage() {
 
                   <input
                     type="number"
-                    label="number of words..."
+                    required
                     value={numberofWords}
                     onChange={(e) => setNumberofWords(e.target.value)}
                     placeholder={generatingResponse ? "" : "number of words..."}
