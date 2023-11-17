@@ -191,6 +191,7 @@ Will need dynamic inputs for,
 
 Do we need a summary of what the book is about? and in how many words?
 
+Fantasy week
 Lord of the Rings
 J.R Tolkein
 President Obahma

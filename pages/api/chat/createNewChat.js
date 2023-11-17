@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   //grab the user id
   try {
     const { user } = await getSession(req, res);
-    const { message } = req.body;
+    const { message, title } = req.body;
     const newUserMessage = {
       role: "user",
       content: message,
@@ -15,12 +15,12 @@ export default async function handler(req, res) {
     const chat = await db.collection("chats").insertOne({
       userId: user.sub,
       messages: [newUserMessage],
-      title: message,
+      title: title,
     });
     res.status(200).json({
       _id: chat.insertedId.toString(),
       messages: [newUserMessage],
-      title: message,
+      title: title,
     });
   } catch (error) {
     res

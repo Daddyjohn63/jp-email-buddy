@@ -20,8 +20,11 @@ export default function ChatPage() {
   const [numberofWords, setNumberofWords] = useState(0);
   const [newChatMessages, setNewChatMessages] = useState([]);
   const [generatingResponse, setGeneratingResponse] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const messageText = `we are a company that re-publishes and sells existing books and we craft them with a new book binding and illustrations. It is a well known quality product.Write me a marketing email about a book called ${bookTitle}, by the author ${author}, it is introduced by ${introductionBy}. The book binding is ${bookBinding} and the illustrations by ${bookIllustrator}.Use the comma separated keywords of ${keyWords},take into account ${addInformation}. Only write ${numberofWords} words and use the following tone of voice ${voiceTone} and add the subject title in h2 markup`;
+
+  const messageTitle = `${campaignName}`;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,7 +40,7 @@ export default function ChatPage() {
       ];
       return newChatMessages;
     });
-    setCampaignName("");
+    //setCampaignName("");
     setBookTitle("");
     setKeyWords("");
     setAuthor("");
@@ -54,6 +57,7 @@ export default function ChatPage() {
       },
       body: JSON.stringify({
         message: messageText,
+        title: messageTitle,
       }),
     });
     const json = await response.json();
@@ -81,6 +85,7 @@ export default function ChatPage() {
     */
 
     setGeneratingResponse(false);
+    setIsSubmitted(true);
   };
 
   return (
@@ -113,6 +118,7 @@ export default function ChatPage() {
                   <textarea
                     value={campaignName}
                     onChange={(e) => setCampaignName(e.target.value)}
+                    disabled={isSubmitted}
                     placeholder={generatingResponse ? "" : "Campaign name..."}
                     className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
                   />
