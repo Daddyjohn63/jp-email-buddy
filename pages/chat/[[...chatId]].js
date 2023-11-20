@@ -27,18 +27,35 @@ export default function ChatPage({ chatId, title, messages = [] }) {
   const [generatingResponse, setGeneratingResponse] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [newChatId, setNewChatId] = useState(null);
+  const [fullMessage, setFullMessage] = useState("");
 
   const messageText = `we are a company that re-publishes and sells existing books and we craft them with a new book binding and illustrations. It is a well known quality product.Write me a marketing email about a book called ${bookTitle}, by the author ${author}, it is introduced by ${introductionBy}. The book binding is ${bookBinding} and the illustrations by ${bookIllustrator}.Use the comma separated keywords of ${keyWords},take into account ${addInformation}. Only write ${numberofWords} words and use the following tone of voice ${voiceTone} and add the subject title in h2 markup`;
 
   const messageTitle = `${campaignName}`;
   const router = useRouter();
 
-  //reset if the chatId changes
+  //when our route changes / reset if the chatId changes
   useEffect(() => {
     setNewChatMessages([]);
     setNewChatId(null);
   }, [chatId]);
 
+  // save the newly streamed message to new chat messages
+  useEffect(() => {
+    if (!generatingResponse && fullMessage) {
+      setNewChatMessages((prev) => [
+        ...prev,
+        {
+          _id: uuid(),
+          role: "assistant",
+          content: fullMessage,
+        },
+      ]);
+      setFullMessage("");
+    }
+  }, [generatingResponse, fullMessage]);
+
+  // if we've created a new chat
   useEffect(() => {
     if (!generatingResponse && newChatId) {
       setNewChatId(null);
@@ -85,7 +102,11 @@ export default function ChatPage({ chatId, title, messages = [] }) {
       headers: {
         "content-type": "application/json",
       },
-      body: JSON.stringify({ message: messageText, title: messageTitle }),
+      body: JSON.stringify({
+        chatId,
+        message: messageText,
+        title: messageTitle,
+      }),
     });
     //get the reader so we can read the response coming back from the sendMessage endpoint.
     const data = response.body;
@@ -93,14 +114,17 @@ export default function ChatPage({ chatId, title, messages = [] }) {
       return;
     }
     const reader = data.getReader();
+    let content = "";
     await streamReader(reader, (message) => {
       console.log("MESSAGE: ", message);
       if (message.event === "newChatId") {
         setNewChatId(message.content);
       } else {
         setIncomingMessage((s) => `${s}${message.content}`);
+        content = content + message.content;
       }
     });
+    setFullMessage(content);
     setIncomingMessage("");
     setGeneratingResponse(false);
     setIsSubmitted(true);
@@ -240,6 +264,14 @@ export const getServerSideProps = async (ctx) => {
       userId: user.sub,
       _id: new ObjectId(chatId),
     });
+
+    if (!chat) {
+      return {
+        redirect: {
+          destination: "/chat",
+        },
+      };
+    }
     return {
       props: {
         chatId,
