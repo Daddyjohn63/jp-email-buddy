@@ -1,11 +1,16 @@
 import { ChatSidebar } from "components/chatSidebar";
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { streamReader } from "openai-edge-stream";
 import { v4 as uuid } from "uuid";
 import { Message } from "components/Message";
+import { useRouter } from "next/router";
+import { getSession } from "@auth0/nextjs-auth0";
+import clientPromise from "lib/mongodb";
+import { ObjectId } from "mongodb";
 
-export default function ChatPage() {
+export default function ChatPage({ chatId, title, messages = [] }) {
+  console.log("props:", title, messages);
   // const [messageText, setMessageText] = useState("");
   const [incomingMessage, setIncomingMessage] = useState("");
   const [campaignName, setCampaignName] = useState("");
@@ -17,14 +22,29 @@ export default function ChatPage() {
   const [bookIllustrator, setBookIllustrator] = useState("");
   const [introductionBy, setIntroductionBy] = useState("");
   const [voiceTone, setVoiceTone] = useState("");
-  const [numberofWords, setNumberofWords] = useState(80);
+  const [numberofWords, setNumberofWords] = useState("");
   const [newChatMessages, setNewChatMessages] = useState([]);
   const [generatingResponse, setGeneratingResponse] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [newChatId, setNewChatId] = useState(null);
 
   const messageText = `we are a company that re-publishes and sells existing books and we craft them with a new book binding and illustrations. It is a well known quality product.Write me a marketing email about a book called ${bookTitle}, by the author ${author}, it is introduced by ${introductionBy}. The book binding is ${bookBinding} and the illustrations by ${bookIllustrator}.Use the comma separated keywords of ${keyWords},take into account ${addInformation}. Only write ${numberofWords} words and use the following tone of voice ${voiceTone} and add the subject title in h2 markup`;
 
   const messageTitle = `${campaignName}`;
+  const router = useRouter();
+
+  //reset if the chatId changes
+  useEffect(() => {
+    setNewChatMessages([]);
+    setNewChatId(null);
+  }, [chatId]);
+
+  useEffect(() => {
+    if (!generatingResponse && newChatId) {
+      setNewChatId(null);
+      router.push(`/chat/${newChatId}`);
+    }
+  }, [newChatId, generatingResponse, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,6 +56,7 @@ export default function ChatPage() {
           _id: uuid(),
           role: "user",
           content: messageText,
+          title: messageTitle,
         },
       ];
       return newChatMessages;
@@ -49,28 +70,22 @@ export default function ChatPage() {
     setBookIllustrator("");
     setIntroductionBy("");
     setVoiceTone("");
-    setNumberofWords(0);
-    const response = await fetch(`/api/chat/createNewChat`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        message: messageText,
-        title: messageTitle,
-      }),
-    });
-    const json = await response.json();
-    console.log("NEW CHAT:", json);
+    setNumberofWords("");
+
+    //console.log("NEW CHAT:", json);
     // console.log("MESSAGETEXT:", messageText);
     //hit send message endpoint
+    console.log(
+      "Sending payload:",
+      JSON.stringify({ message: messageText, title: messageTitle })
+    );
 
-    /*const response = await fetch(`/api/chat/sendMessage`, {
+    const response = await fetch(`/api/chat/sendMessage`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
       },
-      body: JSON.stringify({ message: messageText }),
+      body: JSON.stringify({ message: messageText, title: messageTitle }),
     });
     //get the reader so we can read the response coming back from the sendMessage endpoint.
     const data = response.body;
@@ -80,13 +95,19 @@ export default function ChatPage() {
     const reader = data.getReader();
     await streamReader(reader, (message) => {
       console.log("MESSAGE: ", message);
-      setIncomingMessage((s) => `${s}${message.content}`);
+      if (message.event === "newChatId") {
+        setNewChatId(message.content);
+      } else {
+        setIncomingMessage((s) => `${s}${message.content}`);
+      }
     });
-    */
-
+    setIncomingMessage("");
     setGeneratingResponse(false);
     setIsSubmitted(true);
   };
+
+  //messages are from the props passed in from the server side props fn below. newChatMessages are the new message that has just come in from chat gpt
+  const allMessages = [...messages, ...newChatMessages];
 
   return (
     <div>
@@ -94,10 +115,10 @@ export default function ChatPage() {
         <title>New Email</title>
       </Head>
       <div className="grid h-screen grid-cols-[260px_1fr]">
-        <ChatSidebar />
+        <ChatSidebar chatId={chatId} />
         <div className="flex flex-col overflow-hidden bg-gray-700">
           <div className="flex-1 overflow-y-scroll text-white">
-            {newChatMessages.map((message) => (
+            {allMessages.map((message) => (
               <Message
                 key={message._id} //key needed as we are mapping over an array.
                 role={message.role}
@@ -178,18 +199,18 @@ export default function ChatPage() {
                     }
                     className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
                   />
+                </div>
 
+                <div className="flex justify-center gap-2 pt-2">
                   <input
                     type="number"
                     required
                     value={numberofWords}
                     onChange={(e) => setNumberofWords(e.target.value)}
                     placeholder={generatingResponse ? "" : "number of words..."}
-                    className=" w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
+                    className="  resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
                   />
-                </div>
 
-                <div className="flex justify-center pt-2">
                   <button
                     type="submit"
                     className={`btn px-10 ${
@@ -207,3 +228,30 @@ export default function ChatPage() {
     </div>
   );
 }
+
+// get the id so we can send vai props to sidebar
+export const getServerSideProps = async (ctx) => {
+  const chatId = ctx.params?.chatId?.[0] || null;
+  if (chatId) {
+    const { user } = await getSession(ctx.req, ctx.res);
+    const client = await clientPromise;
+    const db = client.db("EmailBuddy");
+    const chat = await db.collection("chats").findOne({
+      userId: user.sub,
+      _id: new ObjectId(chatId),
+    });
+    return {
+      props: {
+        chatId,
+        title: chat.title,
+        messages: chat.messages.map((message) => ({
+          ...message,
+          _id: uuid(),
+        })),
+      },
+    };
+  }
+  return {
+    props: {},
+  };
+};
