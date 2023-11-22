@@ -8,6 +8,18 @@ export default async function handler(req) {
   try {
     //need chatId to determine if we are creating a new chat or adding to an existing chat.
     const { chatId: chatIdFromParam, message, title } = await req.json();
+
+    //validate message data
+    if (!message || typeof message !== "string" || message.length > 1000) {
+      return new Response(
+        {
+          message: "message is required and must be less than 1000 characters",
+        },
+        {
+          status: 422,
+        }
+      );
+    }
     let chatId = chatIdFromParam;
     //console.log("MESSAGE: ", message);
     const initialChatMessage = {
@@ -126,6 +138,11 @@ export default async function handler(req) {
     );
     return new Response(stream);
   } catch (e) {
-    console.log("AN ERROR OCCURRED IN SEND MESSAGE:", e);
+    return new Response(
+      { message: "An error occurred in sendMessage" },
+      {
+        status: 500,
+      }
+    );
   }
 }
