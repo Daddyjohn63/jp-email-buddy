@@ -1,3 +1,5 @@
+import { faRobot } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ChatSidebar } from "components/chatSidebar";
 import Head from "next/head";
 import { useEffect, useState } from "react";
@@ -10,7 +12,7 @@ import clientPromise from "lib/mongodb";
 import { ObjectId } from "mongodb";
 
 export default function ChatPage({ chatId, title, messages = [] }) {
-  console.log("props:", title, messages);
+  //console.log("props:", chatId, title, messages); //title not showing
   // const [messageText, setMessageText] = useState("");
   const [incomingMessage, setIncomingMessage] = useState("");
   const [campaignName, setCampaignName] = useState("");
@@ -28,11 +30,24 @@ export default function ChatPage({ chatId, title, messages = [] }) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [newChatId, setNewChatId] = useState(null);
   const [fullMessage, setFullMessage] = useState("");
+  const [originalChatId, setOriginalChatId] = useState(chatId);
 
   const messageText = `we are a company that re-publishes and sells existing books and we craft them with a new book binding and illustrations. It is a well known quality product.Write me a marketing email about a book called ${bookTitle}, by the author ${author}, it is introduced by ${introductionBy}. The book binding is ${bookBinding} and the illustrations by ${bookIllustrator}.Use the comma separated keywords of ${keyWords},take into account ${addInformation}. Only write ${numberofWords} words and use the following tone of voice ${voiceTone} and add the subject title in h2 markup`;
 
   const messageTitle = `${campaignName}`;
   const router = useRouter();
+  const routeHasChanged = chatId !== originalChatId;
+
+  const { newCampaign } = router.query;
+
+  useEffect(() => {
+    if (newCampaign) {
+      // Change state or perform actions based on the newCampaign parameter
+      setIsSubmitted(false);
+    } else {
+      setIsSubmitted(true);
+    }
+  }, [newCampaign]);
 
   //when our route changes / reset if the chatId changes
   useEffect(() => {
@@ -42,7 +57,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
 
   // save the newly streamed message to new chat messages
   useEffect(() => {
-    if (!generatingResponse && fullMessage) {
+    if (!routeHasChanged && !generatingResponse && fullMessage) {
       setNewChatMessages((prev) => [
         ...prev,
         {
@@ -53,7 +68,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
       ]);
       setFullMessage("");
     }
-  }, [generatingResponse, fullMessage]);
+  }, [generatingResponse, fullMessage, routeHasChanged]);
 
   // if we've created a new chat
   useEffect(() => {
@@ -66,6 +81,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setGeneratingResponse(true);
+    setOriginalChatId(chatId);
     setNewChatMessages((prev) => {
       const newChatMessages = [
         ...prev,
@@ -78,7 +94,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
       ];
       return newChatMessages;
     });
-    //setCampaignName("");
+    setCampaignName("");
     setBookTitle("");
     setKeyWords("");
     setAuthor("");
@@ -92,10 +108,11 @@ export default function ChatPage({ chatId, title, messages = [] }) {
     //console.log("NEW CHAT:", json);
     // console.log("MESSAGETEXT:", messageText);
     //hit send message endpoint
+
     console.log(
       "Sending payload:",
       JSON.stringify({ message: messageText, title: messageTitle })
-    );
+    ); //this confirms that we are getting the title back from the sendMessage endpoint. SO HOW TO PERSIST THIS TO THE PAGE?
 
     const response = await fetch(`/api/chat/sendMessage`, {
       method: "POST",
@@ -116,7 +133,9 @@ export default function ChatPage({ chatId, title, messages = [] }) {
     const reader = data.getReader();
     let content = "";
     await streamReader(reader, (message) => {
-      console.log("MESSAGE: ", message);
+      //console.log("TITLE: ", title); //title coming back as undefined
+      // console.log("MESSAGE: ", message);
+
       if (message.event === "newChatId") {
         setNewChatId(message.content);
       } else {
@@ -141,16 +160,40 @@ export default function ChatPage({ chatId, title, messages = [] }) {
       <div className="grid h-screen grid-cols-[260px_1fr]">
         <ChatSidebar chatId={chatId} />
         <div className="flex flex-col overflow-hidden bg-gray-700">
-          <div className="flex-1 overflow-y-scroll text-white">
-            {allMessages.map((message) => (
-              <Message
-                key={message._id} //key needed as we are mapping over an array.
-                role={message.role}
-                content={message.content}
-              />
-            ))}
-            {!!incomingMessage && (
-              <Message role="assistant" content={incomingMessage} />
+          <div className="flex flex-1 flex-col-reverse overflow-y-scroll text-white">
+            {!allMessages.length && !incomingMessage && (
+              <div className="m-auto flex items-center justify-center text-center">
+                <div>
+                  <FontAwesomeIcon
+                    icon={faRobot}
+                    className="text-6xl text-emerald-200"
+                  />
+                  <h1 className="mt-2 text-4xl font-bold text-white/50">
+                    Let me help you write your email!
+                  </h1>
+                </div>
+              </div>
+            )}
+
+            {!!allMessages.length && (
+              <div className="mb-auto">
+                {allMessages.map((message) => (
+                  <Message
+                    key={message._id}
+                    role={message.role}
+                    content={message.content}
+                  />
+                ))}
+                {!!incomingMessage && !routeHasChanged && (
+                  <Message role="assistant" content={incomingMessage} />
+                )}
+                {!!incomingMessage && !!routeHasChanged && (
+                  <Message
+                    role="notice"
+                    content="Only one email at a time. Please allow any responses to complete before sending another message"
+                  />
+                )}
+              </div>
             )}
           </div>
           <footer className="bg-gray-800 p-10">
@@ -160,16 +203,24 @@ export default function ChatPage({ chatId, title, messages = [] }) {
                   className="grid grid-cols-4 gap-4"
                   disabled={generatingResponse}
                 >
+                  {/* <p
+                    className={`text-white ${isSubmitted ? "block" : "hidden"}`}
+                  >
+                    Campaign name: {campaignName}
+                  </p> */}
                   <textarea
                     value={campaignName}
-                    required
+                    required={!isSubmitted}
                     onChange={(e) => setCampaignName(e.target.value)}
-                    disabled={isSubmitted}
+                    // disabled={isSubmitted}
                     placeholder={
                       generatingResponse ? "" : "Campaign name..(required)."
                     }
-                    className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
+                    className={`w-full resize-none rounded-md border border-gray-400 bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500  ${
+                      isSubmitted ? "hidden" : "block"
+                    }`}
                   />
+
                   <textarea
                     value={bookTitle}
                     onChange={(e) => setBookTitle(e.target.value)}
@@ -225,7 +276,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
                   />
                 </div>
 
-                <div className="flex justify-center gap-2 pt-2">
+                <div className="flex justify-center gap-2 pt-4">
                   <input
                     type="number"
                     required
@@ -264,7 +315,7 @@ export const getServerSideProps = async (ctx) => {
       userId: user.sub,
       _id: new ObjectId(chatId),
     });
-
+    //console.log("Fetched chat:", chat); //am seeing title, but only shows on page when it is refreshed.
     if (!chat) {
       return {
         redirect: {

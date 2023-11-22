@@ -8,6 +8,6 @@
   }
 
   .side-menu-item {
-    @apply m-2 flex items-center gap-4 rounded-md p-2 hover:bg-gray-800;
+    @apply m-2 flex items-center gap-4 rounded-md p-2  hover:bg-gray-800;
   }
 }

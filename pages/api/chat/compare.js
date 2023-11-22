@@ -5,22 +5,35 @@ export const config = {
 };
 
 export default async function handler(req) {
+  console.log("IN HERE!");
   try {
-    //need chatId to determine if we are creating a new chat or adding to an existing chat.
-    const { chatId: chatIdFromParam, message, title } = await req.json();
+    const { chatId: chatIdFromParam, message } = await req.json();
+
+    // validate message data
+    if (!message || typeof message !== "string" || message.length > 200) {
+      return new Response(
+        {
+          message: "message is required and must be less than 200 characters",
+        },
+        {
+          status: 422,
+        }
+      );
+    }
+
     let chatId = chatIdFromParam;
-    //console.log("MESSAGE: ", message);
+    console.log("MESSAGE: ", message);
     const initialChatMessage = {
       role: "system",
       content:
-        "Your name is Jessica's email buddy. An incredibly intelligent and quick-thinking AI. You were created by John Paul. Your response must be formatted as markdown.",
+        "Your name is Chatty Pete. An incredibly intelligent and quick-thinking AI, that always replies with an enthusiastic and positive energy. You were created by WebDevEducation. Your response must be formatted as markdown.",
     };
 
     let newChatId;
     let chatMessages = [];
 
     if (chatId) {
-      //add message to chat
+      // add message to chat
       const response = await fetch(
         `${req.headers.get("origin")}/api/chat/addMessageToChat`,
         {
@@ -39,7 +52,6 @@ export default async function handler(req) {
       const json = await response.json();
       chatMessages = json.chat.messages || [];
     } else {
-      //create new chat
       const response = await fetch(
         `${req.headers.get("origin")}/api/chat/createNewChat`,
         {
@@ -50,7 +62,6 @@ export default async function handler(req) {
           },
           body: JSON.stringify({
             message,
-            title,
           }),
         }
       );
@@ -64,7 +75,7 @@ export default async function handler(req) {
     chatMessages.reverse();
     let usedTokens = 0;
     for (let chatMessage of chatMessages) {
-      const messageTokens = chatMessage.content.length / 4;
+      const messageTokens = chatMessages.content.length / 4;
       usedTokens = usedTokens + messageTokens;
       if (usedTokens <= 2000) {
         messagesToInclude.push(chatMessage);
@@ -74,6 +85,8 @@ export default async function handler(req) {
     }
 
     messagesToInclude.reverse();
+
+    console.log(messagesToInclude);
 
     const stream = await OpenAIEdgeStream(
       "https://api.openai.com/v1/chat/completions",
@@ -97,15 +110,6 @@ export default async function handler(req) {
           }
         },
         onAfterStream: async ({ fullContent }) => {
-          console.log(
-            "Sending payload to addMessageToChat:",
-            JSON.stringify({
-              chatId,
-              role: "assistant",
-              content: fullContent,
-            })
-          );
-
           await fetch(
             `${req.headers.get("origin")}/api/chat/addMessageToChat`,
             {
@@ -126,6 +130,11 @@ export default async function handler(req) {
     );
     return new Response(stream);
   } catch (e) {
-    console.log("AN ERROR OCCURRED IN SEND MESSAGE:", e);
+    return new Response(
+      { message: "An error occurred in sendMessage" },
+      {
+        status: 500,
+      }
+    );
   }
 }
