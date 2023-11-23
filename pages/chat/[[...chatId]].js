@@ -15,22 +15,23 @@ export default function ChatPage({ chatId, title, messages = [] }) {
   //console.log("props:", chatId, title, messages); //title not showing
   // const [messageText, setMessageText] = useState("");
   const [incomingMessage, setIncomingMessage] = useState("");
-  const [campaignName, setCampaignName] = useState("");
-  const [bookTitle, setBookTitle] = useState("");
-  const [keyWords, setKeyWords] = useState("");
-  const [author, setAuthor] = useState("");
+  const [campaignName, setCampaignName] = useState("test");
+  const [bookTitle, setBookTitle] = useState("The Hobbit");
+  const [keyWords, setKeyWords] = useState("fantasy, adventure");
+  const [author, setAuthor] = useState("Tolkein");
   const [bookBinding, setBookBinding] = useState("");
   const [addInformation, setAddInformation] = useState("");
   const [bookIllustrator, setBookIllustrator] = useState("");
   const [introductionBy, setIntroductionBy] = useState("");
   const [voiceTone, setVoiceTone] = useState("");
-  const [numberofWords, setNumberofWords] = useState("");
+  const [numberofWords, setNumberofWords] = useState(20);
   const [newChatMessages, setNewChatMessages] = useState([]);
   const [generatingResponse, setGeneratingResponse] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [newChatId, setNewChatId] = useState(null);
   const [fullMessage, setFullMessage] = useState("");
   const [originalChatId, setOriginalChatId] = useState(chatId);
+  const [networkError, setNetworkError] = useState("");
 
   const messageText = `we are a company that re-publishes and sells existing books and we craft them with a new book binding and illustrations. It is a well known quality product.Write me a marketing email about a book called ${bookTitle}, by the author ${author}, it is introduced by ${introductionBy}. The book binding is ${bookBinding} and the illustrations by ${bookIllustrator}.Use the comma separated keywords of ${keyWords},take into account ${addInformation}. Only write ${numberofWords} words and use the following tone of voice ${voiceTone} and add the subject title in h2 markup`;
 
@@ -94,21 +95,22 @@ export default function ChatPage({ chatId, title, messages = [] }) {
       ];
       return newChatMessages;
     });
-    setCampaignName("");
-    setBookTitle("");
-    setKeyWords("");
-    setAuthor("");
+    setCampaignName("test");
+    setBookTitle("The Hobbit");
+    setKeyWords("fantasy, adventure");
+    setAuthor("Tolkein");
     setBookBinding("");
     setAddInformation("");
     setBookIllustrator("");
     setIntroductionBy("");
     setVoiceTone("");
-    setNumberofWords("");
+    setNumberofWords(20);
 
     //console.log("NEW CHAT:", json);
     // console.log("MESSAGETEXT:", messageText);
     //hit send message endpoint
 
+    //check what we are sending to sendMessage
     console.log(
       "Sending payload:",
       JSON.stringify({ message: messageText, title: messageTitle })
@@ -125,11 +127,24 @@ export default function ChatPage({ chatId, title, messages = [] }) {
         title: messageTitle,
       }),
     });
-    //get the reader so we can read the response coming back from the sendMessage endpoint.
-    const data = response.body;
-    if (!data) {
+
+    if (!response.ok) {
+      // Handle the case where there was an error in the API response
+      setNetworkError(
+        "Oops! It looks like there was an issue with the request to OpenAI. Please check back later."
+      );
       return;
     }
+
+    //get the reader so we can read the response coming back from the sendMessage endpoint.
+    const data = await response.body;
+    if (!data) {
+      setNetworkError(
+        "Oops! It looks like OpenAI is having issues at the moment, please check back later"
+      );
+      return;
+    }
+
     const reader = data.getReader();
     let content = "";
     await streamReader(reader, (message) => {
@@ -147,6 +162,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
     setIncomingMessage("");
     setGeneratingResponse(false);
     setIsSubmitted(true);
+    // setNetworkError("");
   };
 
   //messages are from the props passed in from the server side props fn below. newChatMessages are the new message that has just come in from chat gpt
@@ -297,6 +313,13 @@ export default function ChatPage({ chatId, title, messages = [] }) {
                 </div>
               </fieldset>
             </form>
+            <div>
+              {networkError && (
+                <div className="flex justify-center text-white">
+                  {networkError}
+                </div>
+              )}
+            </div>
           </footer>
         </div>
       </div>
