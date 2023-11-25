@@ -48,7 +48,7 @@ export const getServerSideProps = async (ctx) => {
   if (!!session) {
     return {
       redirect: {
-        destination: "/chat",
+        destination: "/chat?newCampaign=true",
       },
     };
   }
