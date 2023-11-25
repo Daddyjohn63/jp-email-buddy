@@ -33,6 +33,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
   const [originalChatId, setOriginalChatId] = useState(chatId);
   const [networkError, setNetworkError] = useState("");
 
+  //create message conditional on which fields are entered.
   let messageText = "";
 
   if (bookTitle) {
@@ -350,15 +351,6 @@ export default function ChatPage({ chatId, title, messages = [] }) {
                     placeholder={generatingResponse ? "" : "Number of words..."}
                     className="resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
                   />
-
-                  {/* <input
-                    type="number"
-                    required
-                    value={numberofWords}
-                    onChange={(e) => setNumberofWords(e.target.value)}
-                    placeholder={generatingResponse ? "" : "number of words..."}
-                    className="  resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
-                  /> */}
 
                   <button
                     type="submit"
