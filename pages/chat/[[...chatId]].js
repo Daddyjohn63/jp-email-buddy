@@ -305,7 +305,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
                     value={keyWords}
                     onChange={(e) => setKeyWords(e.target.value)}
                     placeholder={
-                      generatingResponse ? "" : "comma seperated key words..."
+                      generatingResponse ? "" : "Comma seperated key words..."
                     }
                     className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
                   />
@@ -313,7 +313,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
                     value={bookBinding}
                     onChange={(e) => setBookBinding(e.target.value)}
                     placeholder={
-                      generatingResponse ? "" : "describe the book binding..."
+                      generatingResponse ? "" : "Describe the book binding..."
                     }
                     className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
                   />
@@ -323,7 +323,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
                     placeholder={
                       generatingResponse
                         ? ""
-                        : "provide anymore information you think relevant..."
+                        : "Provide anymore information you think relevant..."
                     }
                     className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
                   />
@@ -331,7 +331,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
                     value={voiceTone}
                     onChange={(e) => setVoiceTone(e.target.value)}
                     placeholder={
-                      generatingResponse ? "" : "provide tone of voice..."
+                      generatingResponse ? "" : "Provide tone of voice..."
                     }
                     className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
                   />
