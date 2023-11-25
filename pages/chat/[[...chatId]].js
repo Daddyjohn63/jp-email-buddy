@@ -15,16 +15,16 @@ export default function ChatPage({ chatId, title, messages = [] }) {
   //console.log("props:", chatId, title, messages); //title not showing
   // const [messageText, setMessageText] = useState("");
   const [incomingMessage, setIncomingMessage] = useState("");
-  const [campaignName, setCampaignName] = useState("test");
-  const [bookTitle, setBookTitle] = useState("The Hobbit");
-  const [keyWords, setKeyWords] = useState("fantasy, adventure");
-  const [author, setAuthor] = useState("Tolkein");
+  const [campaignName, setCampaignName] = useState("");
+  const [bookTitle, setBookTitle] = useState("");
+  const [keyWords, setKeyWords] = useState("");
+  const [author, setAuthor] = useState("");
   const [bookBinding, setBookBinding] = useState("");
   const [addInformation, setAddInformation] = useState("");
   const [bookIllustrator, setBookIllustrator] = useState("");
   const [introductionBy, setIntroductionBy] = useState("");
   const [voiceTone, setVoiceTone] = useState("");
-  const [numberofWords, setNumberofWords] = useState(20);
+  const [numberofWords, setNumberofWords] = useState(50);
   const [newChatMessages, setNewChatMessages] = useState([]);
   const [generatingResponse, setGeneratingResponse] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -33,7 +33,48 @@ export default function ChatPage({ chatId, title, messages = [] }) {
   const [originalChatId, setOriginalChatId] = useState(chatId);
   const [networkError, setNetworkError] = useState("");
 
-  const messageText = `we are a company that re-publishes and sells existing books and we craft them with a new book binding and illustrations. It is a well known quality product.Write me a marketing email about a book called ${bookTitle}, by the author ${author}, it is introduced by ${introductionBy}. The book binding is ${bookBinding} and the illustrations by ${bookIllustrator}.Use the comma separated keywords of ${keyWords},take into account ${addInformation}. Only write ${numberofWords} words and use the following tone of voice ${voiceTone} and add the subject title in h2 markup`;
+  let messageText = "";
+
+  if (bookTitle) {
+    messageText += `Write me a marketing email about a book called ${bookTitle}. `;
+  }
+
+  if (author) {
+    messageText += `By the author ${author}. `;
+  }
+
+  if (introductionBy) {
+    messageText += `It is introduced by ${introductionBy}. `;
+  }
+
+  if (bookBinding) {
+    messageText += `The book binding is ${bookBinding}. `;
+  }
+
+  if (bookIllustrator) {
+    messageText += `The illustrations by ${bookIllustrator}. `;
+  }
+
+  if (keyWords) {
+    messageText += `Use the comma-separated keywords of ${keyWords}. `;
+  }
+
+  if (addInformation) {
+    messageText += `Take into account ${addInformation}. `;
+  }
+
+  if (numberofWords) {
+    messageText += `Only write ${numberofWords} words. `;
+  }
+
+  if (voiceTone) {
+    messageText += `Use a ${voiceTone} tone of voice . `;
+  }
+
+  // Add the common part
+  messageText += "Add the subject title in h2 markup.";
+
+  // const messageText = `Write me a marketing email about a book called ${bookTitle}. By the author ${author}. It is introduced by ${introductionBy}. The book binding is ${bookBinding}. The illustrations by ${bookIllustrator}.Use the comma separated keywords of ${keyWords}. Take into account ${addInformation}. Only write ${numberofWords} words. Use the following tone of voice ${voiceTone}. Add the subject title in h2 markup`;
 
   const messageTitle = `${campaignName}`;
   const router = useRouter();
@@ -95,16 +136,16 @@ export default function ChatPage({ chatId, title, messages = [] }) {
       ];
       return newChatMessages;
     });
-    setCampaignName("test");
-    setBookTitle("The Hobbit");
-    setKeyWords("fantasy, adventure");
-    setAuthor("Tolkein");
+    setCampaignName("");
+    setBookTitle("");
+    setKeyWords("");
+    setAuthor("");
     setBookBinding("");
     setAddInformation("");
     setBookIllustrator("");
     setIntroductionBy("");
     setVoiceTone("");
-    setNumberofWords(20);
+    setNumberofWords(50);
 
     //console.log("NEW CHAT:", json);
     // console.log("MESSAGETEXT:", messageText);
@@ -230,7 +271,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
                     onChange={(e) => setCampaignName(e.target.value)}
                     // disabled={isSubmitted}
                     placeholder={
-                      generatingResponse ? "" : "Campaign name..(required)."
+                      generatingResponse ? "" : "Campaign name: required."
                     }
                     className={`w-full resize-none rounded-md border border-gray-400 bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500  ${
                       isSubmitted ? "hidden" : "block"
@@ -239,8 +280,11 @@ export default function ChatPage({ chatId, title, messages = [] }) {
 
                   <textarea
                     value={bookTitle}
+                    required
                     onChange={(e) => setBookTitle(e.target.value)}
-                    placeholder={generatingResponse ? "" : "Book title..."}
+                    placeholder={
+                      generatingResponse ? "" : "Book title: required."
+                    }
                     className="w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
                   />
                   <textarea
@@ -297,10 +341,24 @@ export default function ChatPage({ chatId, title, messages = [] }) {
                     type="number"
                     required
                     value={numberofWords}
+                    onChange={(e) => {
+                      const inputValue = e.target.value;
+                      if (inputValue >= 1 && inputValue <= 1000) {
+                        setNumberofWords(inputValue);
+                      }
+                    }}
+                    placeholder={generatingResponse ? "" : "Number of words..."}
+                    className="resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
+                  />
+
+                  {/* <input
+                    type="number"
+                    required
+                    value={numberofWords}
                     onChange={(e) => setNumberofWords(e.target.value)}
                     placeholder={generatingResponse ? "" : "number of words..."}
                     className="  resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500"
-                  />
+                  /> */}
 
                   <button
                     type="submit"
@@ -315,7 +373,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
             </form>
             <div>
               {networkError && (
-                <div className="flex justify-center text-white">
+                <div className="flex justify-center bg-red-700 text-white">
                   {networkError}
                 </div>
               )}

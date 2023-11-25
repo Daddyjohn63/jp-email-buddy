@@ -192,9 +192,9 @@ Will need dynamic inputs for,
 Do we need a summary of what the book is about? and in how many words?
 
 Fantasy week
-Lord of the Rings
+Lord of the Rings The Return of the King
 J.R Tolkein
-President Obahma
+President Obama
 Fantasy, adventure
 Leather with gold leaf edges
 we are celebrating 100 years since the original book was published
