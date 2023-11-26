@@ -281,7 +281,6 @@ export default function ChatPage({ chatId, title, messages = [] }) {
 
                   <textarea
                     value={bookTitle}
-                    required
                     onChange={(e) => setBookTitle(e.target.value)}
                     placeholder={
                       generatingResponse ? "" : "Book title: required."
