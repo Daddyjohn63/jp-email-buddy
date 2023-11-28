@@ -335,7 +335,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
                 </div>
 
                 <div className="flex justify-center gap-2 pt-4">
-                  <label className=" align-items-center flex text-white">
+                  <label className=" align-items-center flex items-center  justify-center text-white">
                     No. of words
                   </label>
                   <input
