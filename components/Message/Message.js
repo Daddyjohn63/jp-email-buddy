@@ -1,6 +1,6 @@
 import { useUser } from "@auth0/nextjs-auth0/client";
 import Image from "next/image";
-import { faRobot } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelopeOpen, faRobot } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ReactMarkdown from "react-markdown";
 
@@ -29,7 +29,10 @@ export const Message = ({ role, content }) => {
         )}
         {role === "assistant" && (
           <div className="flex h-[30px] w-[30px] items-center justify-center rounded-sm bg-gray-800 shadow-md shadow-black/50">
-            <FontAwesomeIcon icon={faRobot} className="text-emerald-200" />
+            <FontAwesomeIcon
+              icon={faEnvelopeOpen}
+              className="text-emerald-200"
+            />
           </div>
         )}
       </div>

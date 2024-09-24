@@ -1,3 +1,4 @@
+//send messages to openai and then to the chat.
 import { OpenAIEdgeStream } from "openai-edge-stream";
 
 export const config = {
@@ -96,7 +97,8 @@ export default async function handler(req) {
         },
         method: "POST",
         body: JSON.stringify({
-          model: "gpt-3.5-turbo",
+          //model: "gpt-3.5-turbo",
+          model: "gpt-4o-mini",
           messages: [initialChatMessage, ...messagesToInclude],
           stream: true,
         }),

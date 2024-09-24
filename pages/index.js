@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { getSession } from "@auth0/nextjs-auth0";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faRobot } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelopeOpen, faRobot } from "@fortawesome/free-solid-svg-icons";
 
 export default function Home() {
   const { isLoading, error, user } = useUser();
@@ -19,7 +19,7 @@ export default function Home() {
         <div>
           <div>
             <FontAwesomeIcon
-              icon={faRobot}
+              icon={faEnvelopeOpen}
               className="mb-2 text-6xl text-emerald-200"
             />
           </div>

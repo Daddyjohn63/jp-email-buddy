@@ -1,4 +1,4 @@
-import { faRobot } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelopeOpen, faRobot } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ChatSidebar } from "components/chatSidebar";
 import Head from "next/head";
@@ -223,7 +223,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
               <div className="m-auto flex items-center justify-center text-center">
                 <div>
                   <FontAwesomeIcon
-                    icon={faRobot}
+                    icon={faEnvelopeOpen}
                     className="text-6xl text-emerald-200"
                   />
                   <h1 className="mt-2 text-4xl font-bold text-white/50">
